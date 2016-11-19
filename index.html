@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Album</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" >
+    <script type="text/javascript" src="zepto.min.js"></script>
+    <link href="animate.css" rel="stylesheet" type="text/css">
+    <style>
+        *{
+            margin: 0;
+            padding: 0;
+        }
+        body{
+            background-color:black;
+            overflow: hidden;
+        }
+        .img-container{
+            list-style: none;
+        }
+        .img-container li{
+            float:left;
+            overflow: hidden;
+        }
+        .largeime{width:100%;height:100%;position:absolute;left:0;top:0;background-color: black;}
+    </style>
+</head>
+<body>
+    <ul class="img-container" id="container">
+    </ul>
+    <div class="largeime animated fadeIn" id="large_container" style="display: none;">
+        <img id="large_img">
+    </div>
+<script>
+    var wind = $(window);
+    var largeImg = $("#large_img");
+    var loadImage =function(id,callback){
+        $("#large_container").css({
+            width:wind.width,
+            height:wind.height
+        }).show();
+        var imgSrc = 'imges/'+id+'.large.jpg';
+        var imgObj = new Image();
+        imgObj.onload=function(){
+            var w = this.width;
+            var h = this.height;
+            var winWidth = wind.width;
+            var winHeight = wind.height;
+            largeImg.css("height","auto").css("width","auto").css("padding-top","0").css("padding-left","0px");
+            if(w/h>1.2){//横图
+                var heiScale = winWidth/w*h;
+                var paddingTop = (winHeight-heiScale)/2;
+                largeImg.attr("src",imgSrc).css("height",winWidth).css("padding-top",paddingTop);
+
+            }else{//竖图
+                var winScale = winHeight/h*w;
+                var paddingLeft = (winWidth-winScale)/2;
+                largeImg.attr("src",imgSrc).css("height",winWidth).css("padding-left",paddingLeft);
+            }
+            callback&&callback();
+        }
+        imgObj.src = imgSrc;
+
+    };
+    var cunId;
+    $("#container").delegate('li','tap',function(){
+        console.error("33333333");
+        var _id = $(this).attr("data-id");
+        cunId = _id;
+        loadImage(_id);
+    });
+    function render(){
+        var templ = "";
+        var padding = 2;
+        var total = 17;
+        var imgwidth = (wind.width()-padding*3)/4;
+        for(var i=1;i<total;i++){
+            var p = padding;
+            var imgSrc = 'imges/'+i+'.jpg';
+            if(i%4==1){
+                p = 0;
+            }
+            templ += '<li class="animated bounceIn" data-id="'+i+'"style="padding-left:'+p+'px;width:'+imgwidth+'px;height:'+imgwidth+'px;padding-top:'+padding+'px;">' +
+                    '<canvas id="cvs_'+i+'"></canvas>'+
+//                    '<img src="imges/'+i+'.jpg">' +
+                    '</li>';
+            var imgObj = new Image();
+            imgObj.index = i;
+            imgObj.onload=function(){
+                var cvsObj = $("#cvs_"+this.index)[0].getContext('2d');
+                cvsObj.width = this.width;
+                cvsObj.height = this.height;
+                cvsObj.drawImage(this,0,0);
+            };
+            imgObj.src = imgSrc;
+        }
+        $("#container").html(templ);
+    }
+    render();
+    $("#large_container").tap(function(){
+        $(this).hide();
+    }).swipeLeft(function(){
+        cunId++;
+        if(cunId>17){
+            cunId = 17;
+        }else{
+            loadImage(cunId,function(){
+                largeImg.addClass("animated bounceInRight");
+            });
+        }
+    }).swipeRight(function(){
+        cunId--;
+        if(cunId<1){
+            cunId=1;
+        }else{
+            loadImage(cunId,function (){
+                largeImg.addClass("animated bounceInLeft");
+            });
+        }
+    })
+
+</script>
+</body>
+</html>
